@@ -1,6 +1,6 @@
 # nacos-openapi-to-mcp
 
-A Spring Boot 3 auto-configuration library that turns your **existing REST APIs into MCP tools** — without implementing the MCP protocol yourself.
+A Spring Boot 2 auto-configuration library that turns your **existing REST APIs into MCP tools** — without implementing the MCP protocol yourself.
 
 Add `@McpTool` + Swagger `@Operation`/`@Parameter` to any `@RestController` method. On application startup the framework scans those methods, reads their Swagger descriptions and Spring MVC mappings, generates the Nacos 3 MCP Registry definition (tools schema + `json-go-template` protocol-conversion templates), and registers it via the Nacos Admin API. **Higress** then picks up the definition from Nacos and exposes your REST endpoint as a streamable MCP server at `/mcp/{name}`.
 
