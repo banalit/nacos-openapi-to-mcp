@@ -1,15 +1,17 @@
 package io.github.banalit;
 
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * OpenAPI-to-MCP 自动装配入口：业务应用只需引入
  * {@code io.github.banalit:nacos-openapi-to-mcp} 依赖即可生效，无需组件扫描。
+ *
+ * <p>使用 {@code spring.factories} 注册（兼容 Spring Boot 2.x 和 3.x）。
  *
  * <p>装配内容：
  * <ul>
@@ -19,7 +21,7 @@ import org.springframework.context.annotation.Bean;
  * </ul>
  * 所有 Bean 均带 {@code @ConditionalOnMissingBean}，业务应用可自行覆盖。
  */
-@AutoConfiguration
+@Configuration
 @ConditionalOnProperty(prefix = "mcp.openapi", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(McpOpenApiProperties.class)
 public class McpOpenApiAutoConfiguration {

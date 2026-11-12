@@ -3,6 +3,7 @@ package io.github.banalit;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,13 @@ public class NacosMcpPublisher {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    private volatile Map<String, Object> lastResult = Map.of("status", "NOT_STARTED");
+    private volatile Map<String, Object> lastResult;
+
+    {
+        Map<String, Object> init = new LinkedHashMap<>();
+        init.put("status", "NOT_STARTED");
+        lastResult = init;
+    }
 
     public NacosMcpPublisher(McpSpecGenerator generator, McpOpenApiProperties props) {
         this.generator = generator;
@@ -60,7 +67,10 @@ public class NacosMcpPublisher {
     @EventListener(ApplicationReadyEvent.class)
     public void publish() {
         if (!props.isEnabled()) {
-            lastResult = Map.of("status", "DISABLED", "name", props.getName());
+            Map<String, Object> disabled = new LinkedHashMap<>();
+            disabled.put("status", "DISABLED");
+            disabled.put("name", props.getName());
+            lastResult = disabled;
             log.info("[OpenAPI->MCP] 自注册已禁用");
             return;
         }

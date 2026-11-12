@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -120,7 +121,7 @@ public class McpSpecGenerator {
         spec.put("description", props.getDescription() + "（自动生成 " + toolCount + " 个工具）");
         spec.put("version", props.getVersion());
         spec.put("enabled", true);
-        spec.put("capabilities", List.of("TOOL"));
+        spec.put("capabilities", Collections.singletonList("TOOL"));
         spec.put("remoteServerConfig", remote);
         return spec;
     }
@@ -186,9 +187,12 @@ public class McpSpecGenerator {
         goTemplate.put("responseTemplate", responseTemplate);
 
         Map<String, Object> meta = new LinkedHashMap<>();
+        Map<String, Object> invokeContext = new LinkedHashMap<>();
+        Map<String, Object> templates = new LinkedHashMap<>();
+        templates.put("json-go-template", goTemplate);
         meta.put("enabled", true);
-        meta.put("invokeContext", Map.of());
-        meta.put("templates", Map.of("json-go-template", goTemplate));
+        meta.put("invokeContext", invokeContext);
+        meta.put("templates", templates);
 
         Map<String, Object> source = new LinkedHashMap<>();
         source.put("tool", name);
@@ -205,7 +209,10 @@ public class McpSpecGenerator {
             List<String> required, Map<String, String> argsPosition) {
         for (Parameter p : method.getParameters()) {
             Class<?> type = p.getType();
-            if (type.getName().startsWith("jakarta.servlet.")) {
+            // 兼容 Boot 2 (javax.servlet) 和 Boot 3 (jakarta.servlet)
+            String typeName = type.getName();
+            if (typeName.startsWith("javax.servlet.")
+                    || typeName.startsWith("jakarta.servlet.")) {
                 continue;
             }
             RequestParam rp = p.getAnnotation(RequestParam.class);

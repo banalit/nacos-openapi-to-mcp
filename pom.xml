@@ -10,6 +10,10 @@
         且 starter-parent 会把构建插件版本锁死在固定 Boot 版本上。
         改为「导入 spring-boot-dependencies BOM（版本用属性覆盖）」来托管所有 Spring Boot 依赖，
         消费方用自己的 Boot 版本时，由其 parent BOM 主导，互不冲突。
+
+        兼容性：JDK 8+ / Spring Boot 2.x（默认 2.7.18）。
+        本框架的设计目标就是给「无法升级 JDK / Spring Boot 的存量系统」用——
+        如果都能升到 JDK 17 + Boot 3，直接用 Spring AI Alibaba @Tool 即可。
     -->
     <groupId>io.github.banalit</groupId>
     <artifactId>nacos-openapi-to-mcp</artifactId>
@@ -18,13 +22,15 @@
     <name>nacos-openapi-to-mcp</name>
     <description>OpenAPI-to-MCP framework: scan @McpTool + Swagger annotations on Spring MVC
         methods, generate Nacos 3 MCP Registry definitions and self-register on startup.
-        Higress then exposes the REST API as a streamable MCP server (REST-to-MCP).</description>
+        Higress then exposes the REST API as a streamable MCP server (REST-to-MCP).
+        Compatible with JDK 8+ and Spring Boot 2.x.</description>
 
     <properties>
-        <!-- 消费方可在自己的构建中通过 -Dspring-boot.version=... 覆盖，或在父 POM dependencyManagement 中统一指定 -->
-        <spring-boot.version>3.5.10</spring-boot.version>
+        <!-- 默认 Spring Boot 2.7.18（Boot 2 末版，JDK 8 兼容）；消费方可覆盖为 3.x -->
+        <spring-boot.version>2.7.18</spring-boot.version>
         <swagger-annotations.version>2.2.25</swagger-annotations.version>
-        <maven.compiler.release>17</maven.compiler.release>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -42,7 +48,7 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- @AutoConfiguration / @ConfigurationProperties / @ConditionalOn* -->
+        <!-- @Configuration / @ConfigurationProperties / @ConditionalOn* / ApplicationReadyEvent -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
@@ -85,9 +91,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
+                <version>3.11.0</version>
                 <configuration>
-                    <release>17</release>
+                    <source>8</source>
+                    <target>8</target>
                 </configuration>
             </plugin>
         </plugins>

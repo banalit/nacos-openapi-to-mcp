@@ -27,11 +27,13 @@ Nacos MCP Registry  ──Higress nacos3 watcher──▶  Envoy route /mcp/{nam
 
 ## Requirements
 
-- **Java 17+**
-- **Spring Boot 3.x** (3.2+ recommended). The library does **not** inherit `spring-boot-starter-parent` — it imports the `spring-boot-dependencies` BOM with a `${spring-boot.version}` property (default `3.5.10`), so your project's own Boot version takes precedence and there is no version conflict.
+- **Java 8+** (compiled to Java 8 bytecode; works on JDK 8, 11, 17, 21)
+- **Spring Boot 2.x or 3.x** (default BOM `2.7.18` for Boot 2 / JDK 8 compatibility; overridable to 3.x). The library does **not** inherit `spring-boot-starter-parent` — it imports the `spring-boot-dependencies` BOM with a `${spring-boot.version}` property, so your project's own Boot version takes precedence and there is no version conflict.
 - **Nacos 3.x** (MCP Registry enabled) reachable from the application at startup.
 - **Higress** configured with a `type: nacos3` service source and `enableMCPServer: true` so it subscribes to MCP definitions from Nacos.
 - **A registered service instance** in Nacos that Higress can route to (the `endpointSpecification` uses `type=REF`, referencing an existing service name). Typically your app already registers itself via Spring AI Alibaba's `mcp-registry` or Nacos service discovery — just point `mcp.openapi.service-name` at it.
+
+> **Why JDK 8 + Boot 2.x?** This framework exists for **legacy systems that cannot upgrade their JDK or Spring Boot version**. If your project is already on JDK 17 + Boot 3, you can use Spring AI Alibaba's `@Tool` directly — you don't need this library.
 
 ## Quick start
 
@@ -184,15 +186,16 @@ mvn -f nacos-openapi-to-mcp/pom.xml clean install
 mvn -f your-app/pom.xml clean package
 ```
 
-The framework does **not** pin `spring-boot-starter-parent`. It imports the `spring-boot-dependencies` BOM via a `${spring-boot.version}` property (default `3.5.10`). To build/test against a different Boot version:
+The framework does **not** pin `spring-boot-starter-parent`. It imports the `spring-boot-dependencies` BOM via a `${spring-boot.version}` property (default `2.7.18` for JDK 8 / Boot 2 compatibility). To build/test against a different Boot version:
 
 ```bash
-mvn -Dspring-boot.version=3.4.5 clean install
+# Build against Spring Boot 3.x
+mvn -Dspring-boot.version=3.5.10 clean install
 ```
 
 ## Architecture notes
 
-- **Auto-configuration**: Registered via `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` — adding the dependency is enough, no component scanning or `@EnableXxx` needed.
+- **Auto-configuration**: Registered via both `META-INF/spring.factories` (Spring Boot 2.x) and `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` (Spring Boot 3.x) — adding the dependency is enough, no component scanning or `@EnableXxx` needed. The `@Configuration` class works across both Boot 2.x and 3.x.
 - **Overridable beans**: All beans are annotated `@ConditionalOnMissingBean`, so you can provide your own `McpSpecGenerator` or `NacosMcpPublisher` to customize behavior.
 - **What the framework does NOT do**: It does not register a Nacos service instance or send heartbeats. It assumes `service-name` points to an already-registered instance (e.g. from SAA `mcp-registry`, Nacos service discovery, or manual registration). The MCP definition it writes uses `endpointSpecification.type=REF` to reference that instance.
 
