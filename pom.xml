@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+        注意：本模块刻意「不继承」 spring-boot-starter-parent。
+        原因：Maven 不允许 parent.version 使用属性占位，写死版本会强制消费方也必须对齐；
+        且 starter-parent 会把构建插件版本锁死在固定 Boot 版本上。
+        改为「导入 spring-boot-dependencies BOM（版本用属性覆盖）」来托管所有 Spring Boot 依赖，
+        消费方用自己的 Boot 版本时，由其 parent BOM 主导，互不冲突。
+    -->
+    <groupId>io.github.banalit</groupId>
+    <artifactId>nacos-openapi-to-mcp</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+    <name>nacos-openapi-to-mcp</name>
+    <description>OpenAPI-to-MCP framework: scan @McpTool + Swagger annotations on Spring MVC
+        methods, generate Nacos 3 MCP Registry definitions and self-register on startup.
+        Higress then exposes the REST API as a streamable MCP server (REST-to-MCP).</description>
+
+    <properties>
+        <!-- 消费方可在自己的构建中通过 -Dspring-boot.version=... 覆盖，或在父 POM dependencyManagement 中统一指定 -->
+        <spring-boot.version>3.5.10</spring-boot.version>
+        <swagger-annotations.version>2.2.25</swagger-annotations.version>
+        <maven.compiler.release>17</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <!-- 用 BOM 托管 Spring Boot 依赖版本，而非通过 parent 锁定 -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- @AutoConfiguration / @ConfigurationProperties / @ConditionalOn* -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <!-- ApplicationContext（扫描 RestController Bean） -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+        <!-- Spring MVC 映射注解 + RestTemplate -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+        <!-- 生成 Nacos 三段 JSON（由 Boot BOM 托管版本） -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <!-- @ConfigurationProperties 元数据生成（编译期，可选） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!-- 读取方法/参数上的 OpenAPI 描述；宿主应用写注解也需要此依赖（非 Boot 管理，需显式版本） -->
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>${swagger-annotations.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <release>17</release>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

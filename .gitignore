@@ -1,0 +1,28 @@
+# Build output
+target/
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.project
+.classpath
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Maven
+*.versionsBackup
+release.properties
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.next
+
+# Logs
+*.log
+logs/
